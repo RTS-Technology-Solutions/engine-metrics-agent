@@ -4,17 +4,22 @@
   "description": "AI-powered chess engine analysis platform for RTS Technology & Solutions",
   "main": "index.js",
   "scripts": {
+    "setup": "bash scripts/setup-firebase.sh",
     "dev": "concurrently \"npm run frontend\" \"npm run backend\" \"npm run ai\"",
     "frontend": "cd src/frontend && npm start",
-    "backend": "cd src/backend && npm run dev",
-    "ai": "cd src/ai && python app.py",
+    "backend": "cd src/backend/functions && npm run serve",
+    "ai": "cd src/ai && python -m flask run --port=5001",
     "build": "cd src/frontend && npm run build",
-    "deploy": "firebase deploy",
+    "deploy": "bash scripts/deploy.sh",
     "deploy:frontend": "firebase deploy --only hosting",
     "deploy:backend": "firebase deploy --only functions",
-    "test": "jest",
-    "lint": "eslint src/",
-    "setup": "node scripts/setup.js"
+    "deploy:rules": "firebase deploy --only firestore,storage",
+    "test": "cd src/frontend && npm test",
+    "test:backend": "cd src/backend/functions && npm test",
+    "logs": "firebase functions:log",
+    "emulator": "firebase emulators:start",
+    "install:all": "npm install && cd src/frontend && npm install && cd ../backend/functions && npm install",
+    "lint": "eslint src/"
   },
   "keywords": [
     "chess",

@@ -39,24 +39,60 @@
 ## 🚀 Next Steps - What I Need From You
 
 ### 🔑 Firebase Account Information
-- [ ] Confirm `pat@rapidtechconsultants.com` has owner access
-- [ ] List any existing Firebase projects
-- [ ] Provide GCP organization setup status
+- [X] Confirm `pat@rapidtechconsultants.com` has owner access - Partial: needs API access fixed
+- [X] List any existing Firebase projects - see below
+        Project name: chess-engine-metrics-agent
+        Project ID: chess-engine-metrics-agent
+        Project number: 178004625409
+        Parent org/folder in GCP: rapidtechconsultants.com
+        Web API Key: No Web API Key for this project
+        Environment: This setting customizes your project for different stages of the app lifecycle
+        Environment type: Unspecified
+
+- [X] Provide GCP organization setup status - Yes, under rapidtechconsultants.com
+- [X] Billing account details - Yes, under rapidtechconsultants.com
 
 ### 📊 Data Inventory
-- [ ] Where are your current analysis files stored?
-- [ ] What's the approximate data volume (GB)?
-- [ ] How often is new data generated?
+- [X] Where are your current analysis files stored? 
+    1. "S:\Maker Stuff\Programming\Chess Engines\Chess Engine Playground\engine-tester\analysis_results"
+    2. "S:\Maker Stuff\Programming\Chess Engines\Chess Engine Playground\engine-metrics\game_records"
+    3. "S:\Maker Stuff\Programming\Chess Engines\Chess Engine Playground\engine-metrics\datasets"
+    4. "S:\Maker Stuff\Programming\Chess Engines\Chess Engine Playground\engine-metrics\pgn_elo_analysis"
+    5. "S:\Maker Stuff\Programming\Chess Engines\Chess Engine Playground\engine-tester\automated_battle_framework\battle_results"
+    6. "S:\Maker Stuff\Programming\Chess Engines\Chess Engine Playground\engine-tester\gauntlet_testing\results"
+    7. "S:\Maker Stuff\Programming\Chess Engines\V7P3R Chess Engine\v7p3r-chess-engine\docs"
+    8. "S:\Maker Stuff\Programming\Chess Engines\SlowMate Chess Engine\slowmate-chess-engine\docs"
+    9. "S:\Maker Stuff\Programming\Chess Engines\SlowMate Chess Engine\slowmate-chess-engine\games"
+    10. "S:\Maker Stuff\Programming\Chess Engines\SlowMate Chess Engine\slowmate-chess-engine\testing"
+    11. "S:\Maker Stuff\Programming\Chess Engines\C0BR4 Chess Engine\cobra-chess-engine\docs"
+- [X] What's the approximate data volume (GB)? Unknown, TBD after initial upload
+- [X] What file formats are used? PGN, JSON, MD
+- [X] How often is new data generated? Daily/weekly
 
 ### 🎯 Priority Use Cases
-- [ ] Which questions are most valuable to you?
-- [ ] What decisions do you need AI help with?
-- [ ] Any specific analysis workflows to maintain?
+- [X] Which questions are most valuable to you?
+    1. "How has V7P3R improved version over version?"
+    2. "What caused the version X performance drop?"
+    3. "Which engine performs best in blitz?"
+    4. "What are the key factors influencing engine performance?"
+    5. "What are the heuristical differences between engines?"
+    6. "How do different time controls affect engine performance?"
+- [X] What decisions do you need AI help with?
+    1. Identifying performance trends to plan new heuristic implementations
+    2. Diagnosing performance issues to prioritize bug fixes
+    3. Comparing engines to inform development focus areas
+- [X] Any specific analysis workflows to maintain?
+    1. Engine tournaments executed via Arena GUI will always produce PGN files to be processed
+        1a. PGN files will also be generated via engine-tester battles and gauntlets
+    2. Puzzle Analysis and puzzle ELO estimate JSON results will be produced from the engine-tester tool
+    3. Custom scripts will generate JSON/MD reports for deeper analysis
+    4. Primary competitive landscape is V7P3R (human built/managed engine) vs SlowMate (Copilot built/managed engine) vs C0BR4 (C# human/AI hybrid "control" engine)
 
 ### 💼 Business Requirements
-- [ ] Monthly budget preference?
-- [ ] Timeline for completion?
-- [ ] Any security/compliance needs?
+- [X] Monthly budget preference? <$20/month to start - personal use only>
+- [X] Timeline for completion? 1-2 weeks
+- [X] Any security/compliance needs? general IP protection for the project and data security - standard Firebase security rules should suffice
+- [X] Who will be the primary users? Myself (Pat)
 
 ---
 
