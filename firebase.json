@@ -23,5 +23,18 @@
   "functions": {
     "source": "src/backend/functions",
     "runtime": "nodejs18"
+  },
+  "emulators": {
+    "functions": {
+      "port": 5003
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
   }
 }

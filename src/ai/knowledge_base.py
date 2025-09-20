@@ -14,17 +14,53 @@ from google.cloud import storage
 import chess.pgn
 import io
 
+# Set up authentication using Firebase CLI credentials
+os.environ.setdefault('GOOGLE_CLOUD_PROJECT', 'chess-engine-metrics-agent')
+
 class ChessEngineKnowledgeBase:
     def __init__(self, project_id: Optional[str] = None):
         """Initialize the knowledge base with Firebase connections"""
         self.project_id = project_id or os.getenv('GOOGLE_CLOUD_PROJECT', 'chess-engine-metrics-agent')
-        self.db = firestore.Client(project=self.project_id)
-        self.storage_client = storage.Client(project=self.project_id)
-        self.bucket = self.storage_client.bucket(f"{self.project_id}.appspot.com")
+        
+        # Initialize Firebase clients with Application Default Credentials
+        try:
+            # Use Application Default Credentials (Firebase CLI authentication)
+            self.db = firestore.Client(project=self.project_id)
+            self.storage_client = storage.Client(project=self.project_id)
+            self.bucket = self.storage_client.bucket(f"{self.project_id}.firebasestorage.app")
+            
+            # Test the connection
+            self._test_connection()
+            print(f"✅ Connected to Firebase project: {self.project_id}")
+            
+        except Exception as e:
+            print(f"⚠️ Firebase connection issue: {e}")
+            print("💡 Ensure you're authenticated with: firebase login")
+            print("Using fallback mode - some features may be limited")
+            self.db = None
+            self.storage_client = None
+            self.bucket = None
+    
+    def _test_connection(self):
+        """Test Firebase connections"""
+        if self.db:
+            # Test Firestore connection
+            test_ref = self.db.collection('_test').document('connection')
+            test_ref.set({'timestamp': firestore.SERVER_TIMESTAMP}, merge=True)
+        
+        if self.bucket:
+            # Test Storage connection by checking if bucket exists
+            self.bucket.exists()
         
     def ingest_pgn_data(self, pgn_content: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Process PGN content and extract game data"""
         try:
+            if not self.db:
+                return {
+                    'success': False,
+                    'error': 'Database connection not available'
+                }
+            
             games = []
             pgn_io = io.StringIO(pgn_content)
             
@@ -69,6 +105,12 @@ class ChessEngineKnowledgeBase:
     def ingest_json_data(self, json_content: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Process JSON analysis data"""
         try:
+            if not self.db:
+                return {
+                    'success': False,
+                    'error': 'Database connection not available'
+                }
+            
             data = json.loads(json_content)
             
             # Extract performance metrics
@@ -100,6 +142,12 @@ class ChessEngineKnowledgeBase:
     def ingest_markdown_data(self, md_content: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
         """Process Markdown documentation"""
         try:
+            if not self.db:
+                return {
+                    'success': False,
+                    'error': 'Database connection not available'
+                }
+            
             # Extract structured information
             analysis = self._analyze_markdown_content(md_content)
             
@@ -126,9 +174,12 @@ class ChessEngineKnowledgeBase:
                 'error': str(e)
             }
     
-    def query_knowledge_base(self, query_type: str, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    def query_knowledge_base(self, query_type: str, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """Query the knowledge base for relevant data"""
         try:
+            if not self.db:
+                return []
+            
             # Build query
             collection_ref = self.db.collection('knowledge_base')
             
@@ -154,9 +205,16 @@ class ChessEngineKnowledgeBase:
             print(f"Query error: {e}")
             return []
     
-    def get_engine_performance_summary(self, engine_name: str = None) -> Dict[str, Any]:
+    def get_engine_performance_summary(self, engine_name: Optional[str] = None) -> Dict[str, Any]:
         """Get performance summary for specific engine or all engines"""
         try:
+            if not self.db:
+                return {
+                    'engines': {},
+                    'total_games_analyzed': 0,
+                    'error': 'Database connection not available'
+                }
+            
             # Query PGN analysis data
             pgn_data = self.query_knowledge_base('performance', {'data_type': 'pgn_analysis'})
             
@@ -346,3 +404,94 @@ class ChessEngineKnowledgeBase:
                 topics.append({'topic': topic, 'frequency': count})
         
         return sorted(topics, key=lambda x: x['frequency'], reverse=True)
+    
+    def load_data_from_storage(self, file_path: str) -> Optional[str]:
+        """Load data directly from Firebase Storage bucket"""
+        try:
+            if not self.bucket:
+                return None
+            
+            blob = self.bucket.blob(file_path)
+            
+            if not blob.exists():
+                print(f"File not found in storage: {file_path}")
+                return None
+            
+            content = blob.download_as_text()
+            print(f"✅ Loaded {len(content)} characters from {file_path}")
+            return content
+            
+        except Exception as e:
+            print(f"❌ Error loading from storage: {e}")
+            return None
+    
+    def list_storage_files(self, prefix: str = "") -> List[str]:
+        """List files in Firebase Storage bucket"""
+        try:
+            if not self.bucket:
+                return []
+            
+            blobs = self.bucket.list_blobs(prefix=prefix)
+            files = [blob.name for blob in blobs]
+            print(f"📁 Found {len(files)} files with prefix '{prefix}'")
+            return files
+            
+        except Exception as e:
+            print(f"❌ Error listing storage files: {e}")
+            return []
+    
+    def auto_ingest_from_storage(self, prefix: str = "") -> Dict[str, Any]:
+        """Automatically ingest all supported files from storage"""
+        try:
+            files = self.list_storage_files(prefix)
+            
+            results = {
+                'processed': 0,
+                'errors': 0,
+                'skipped': 0,
+                'details': []
+            }
+            
+            for file_path in files:
+                # Skip directories and unsupported files
+                if file_path.endswith('/'):
+                    continue
+                
+                file_ext = file_path.lower().split('.')[-1]
+                
+                if file_ext not in ['pgn', 'json', 'md']:
+                    results['skipped'] += 1
+                    continue
+                
+                content = self.load_data_from_storage(file_path)
+                if not content:
+                    results['errors'] += 1
+                    results['details'].append(f"Failed to load: {file_path}")
+                    continue
+                
+                # Process based on file type
+                metadata = {'fileName': file_path.split('/')[-1]}
+                
+                if file_ext == 'pgn':
+                    result = self.ingest_pgn_data(content, metadata)
+                elif file_ext == 'json':
+                    result = self.ingest_json_data(content, metadata)
+                elif file_ext == 'md':
+                    result = self.ingest_markdown_data(content, metadata)
+                
+                if result.get('success'):
+                    results['processed'] += 1
+                    results['details'].append(f"Processed: {file_path}")
+                else:
+                    results['errors'] += 1
+                    results['details'].append(f"Error processing {file_path}: {result.get('error', 'Unknown error')}")
+            
+            return results
+            
+        except Exception as e:
+            return {
+                'processed': 0,
+                'errors': 1,
+                'skipped': 0,
+                'details': [f"Auto-ingest failed: {str(e)}"]
+            }

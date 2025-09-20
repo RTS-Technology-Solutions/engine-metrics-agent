@@ -1,11 +1,9 @@
 const admin = require('firebase-admin');
-const { VertexAI } = require('@google-cloud/aiplatform');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-// Initialize Vertex AI client
-const vertex_ai = new VertexAI({
-  project: process.env.GOOGLE_CLOUD_PROJECT || 'chess-engine-metrics-agent',
-  location: 'us-central1'
-});
+// Initialize Gemini AI with API key from environment
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
 async function processDataWithAI(req, res) {
   if (req.method !== 'POST') {
@@ -31,7 +29,7 @@ async function processDataWithAI(req, res) {
 
     const uploadData = uploadDoc.data();
     
-    // Download and process the file
+    // Process the file (simplified for now)
     const processedData = await processFileWithAI(uploadData, analysisType);
 
     // Store AI analysis results
@@ -209,22 +207,96 @@ async function analyzeMarkdownWithAI(content, analysisType) {
 }
 
 async function generateAIResponse(prompt) {
-  // Simplified AI response - in production, this would use Vertex AI
-  // For now, return structured mock response
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      console.warn('GEMINI_API_KEY not found, using fallback response');
+      return getFallbackResponse();
+    }
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // Parse the AI response and structure it
+    return {
+      summary: extractSummaryFromResponse(text),
+      insights: extractInsightsFromResponse(text),
+      recommendations: extractRecommendationsFromResponse(text),
+      confidence: 0.85,
+      fullResponse: text
+    };
+
+  } catch (error) {
+    console.error('Gemini AI error:', error);
+    // Fallback to structured mock response
+    return getFallbackResponse();
+  }
+}
+
+function getFallbackResponse() {
   return {
-    summary: "Analysis completed successfully",
+    summary: "Analysis completed successfully (offline mode)",
     insights: [
-      "Engine performance shows consistent improvement",
-      "Tactical accuracy has increased by 15%",
-      "Endgame evaluation needs optimization"
+      "Engine performance shows consistent patterns",
+      "Data structure indicates systematic testing",
+      "Multiple metrics available for evaluation"
     ],
     recommendations: [
-      "Focus on time management optimization",
-      "Enhance positional evaluation",
-      "Improve opening book coverage"
+      "Consider implementing automated analysis",
+      "Expand data collection scope",
+      "Focus on performance optimization areas"
     ],
-    confidence: 0.85
+    confidence: 0.70,
+    fullResponse: "AI analysis temporarily unavailable - using fallback analysis"
   };
+}
+
+function extractSummaryFromResponse(text) {
+  // Look for summary-like content in the first few sentences
+  const sentences = text.split('.').slice(0, 3);
+  return sentences.join('.').trim() + (sentences.length > 0 ? '.' : '');
+}
+
+function extractInsightsFromResponse(text) {
+  // Extract numbered insights or bullet points
+  const insights = [];
+  const lines = text.split('\n');
+  
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed.match(/^\d+\./) || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const insight = trimmed.replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, '');
+      if (insight.length > 10) {
+        insights.push(insight);
+      }
+    }
+  });
+  
+  return insights.slice(0, 5); // Limit to 5 insights
+}
+
+function extractRecommendationsFromResponse(text) {
+  // Look for recommendation-like content
+  const recommendations = [];
+  const lines = text.split('\n');
+  
+  let inRecommendations = false;
+  lines.forEach(line => {
+    const trimmed = line.trim().toLowerCase();
+    
+    if (trimmed.includes('recommend') || trimmed.includes('suggest') || trimmed.includes('should')) {
+      inRecommendations = true;
+    }
+    
+    if (inRecommendations && (trimmed.match(/^\d+\./) || trimmed.startsWith('- ') || trimmed.startsWith('* '))) {
+      const rec = line.trim().replace(/^\d+\.\s*/, '').replace(/^[-*]\s*/, '');
+      if (rec.length > 10) {
+        recommendations.push(rec);
+      }
+    }
+  });
+  
+  return recommendations.slice(0, 4); // Limit to 4 recommendations
 }
 
 // Helper functions

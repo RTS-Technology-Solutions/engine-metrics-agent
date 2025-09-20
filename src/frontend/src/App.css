@@ -2,96 +2,59 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
 .App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Chart containers */
-.chart-container {
-  margin: 20px 0;
-  padding: 20px;
-  background-color: #1e1e1e;
-  border-radius: 8px;
-}
-
-/* Upload area styling */
-.upload-area {
-  border: 2px dashed #555;
-  border-radius: 8px;
+  background-color: #1a1a1a;
   padding: 40px;
-  margin: 20px 0;
-  background-color: #2a2a2a;
-  transition: border-color 0.3s ease;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.upload-area:hover {
-  border-color: #1976d2;
+.App-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  color: #4fc3f7;
 }
 
-/* Query interface styling */
-.query-interface {
-  max-width: 800px;
-  margin: 0 auto;
+.App-header h2 {
+  color: #81c784;
+  margin: 10px 0;
 }
 
-.query-input {
-  width: 100%;
-  margin-bottom: 20px;
+.App-header h3 {
+  color: #ffb74d;
+  margin: 10px 0;
 }
 
-.query-result {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-  text-align: left;
+.App-header p {
+  font-size: 1.2rem;
+  margin: 0 0 20px 0;
+  color: #cccccc;
 }
 
-/* Engine comparison cards */
-.engine-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-  margin: 20px 0;
+.App-header ol, .App-header ul {
+  margin: 10px 0;
 }
 
-.engine-card {
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #444;
+.App-header li {
+  margin: 8px 0;
+  color: #e0e0e0;
 }
 
-/* Dashboard layout */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
-  margin: 20px 0;
+.status-item {
+  margin: 5px 0;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .App-header h1 {
+    font-size: 2rem;
+  }
+  
+  .App-header ol, .App-header ul {
+    max-width: 300px !important;
+  }
 }
